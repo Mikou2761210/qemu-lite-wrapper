@@ -1,0 +1,24 @@
+[package]
+name = "qemu-lite-wrapper"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.37", features = ["full"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+futures = "0.3"
+serde = { version = "1.0.219", features = ["derive"]}
+serde_json = { version = "1.0", features = ["raw_value"] } 
+log         = "0.4"
+env_logger = "0.10" 
+anyhow = "1.0.98"
+
+
+
+[package.metadata.release]
+sign-commit = true
+push = true
+push-remote = "origin"
+publish = false
+consolidate-commits = true
+pre-release-commit-message = "Release {{version}}"
