@@ -20,6 +20,21 @@ impl QemuLaunchArgs {
         self
     }
 
+    pub fn with_flag(mut self, flag: impl Into<String>) -> Self {
+        self.args.push(QemuArg::from_flag(flag));
+        self
+    }
+    
+    pub fn with_key_value(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        self.args.push(QemuArg::from_key_value(key, value));
+        self
+    }
+
+    pub fn with_list(mut self, key: impl Into<String>, list: Vec<impl Into<String>>) -> Self {
+        self.args.push(QemuArg::from_list(key, list));
+        self
+    }
+
     pub fn with_args(mut self, args: impl IntoIterator<Item = QemuArg>) -> Self {
         self.args.extend(args);
         self
