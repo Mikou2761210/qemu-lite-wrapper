@@ -13,7 +13,9 @@ log         = "0.4"
 env_logger = "0.10" 
 shell-words = "1.1"
 
-
+[lib]
+name = "qemu_lite_wrapper"
+crate-type = ["lib"]
 
 [package.metadata.release]
 sign-commit = true
