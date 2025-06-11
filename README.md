@@ -20,7 +20,9 @@ use tokio::net::unix::{OwnedReadHalf, OwnedWriteHalf};
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Build QEMU binary path and launch options
     let args = QemuLaunchArgs::new("/usr/bin/qemu-system-x86_64")
-        .with_arg(QemuArg::from_flag("-nographic")); // Equivalent to `.with_flag("-nographic")`
+        .with_flag("-nographic") // Same as `.with_arg(QemuArg::from_flag("-nographic"))`
+        .with_key_value("cpu", "host") // Same as `.with_arg(QemuArg::from_key_value("cpu", "host"))`
+        .with_list("device", ["virtio-net", "netdev=net0"]); // Same as `.with_arg(QemuArg::from_list("device", [...]))`
 
     // Create and launch a VM
     let mut vm = VmController::<OwnedReadHalf, OwnedWriteHalf>::new(args);
