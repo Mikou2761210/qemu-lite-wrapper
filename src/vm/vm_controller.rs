@@ -21,7 +21,7 @@ where
     R: AsyncRead + Unpin + Send + 'static,
     W: AsyncWrite + Unpin + Send + 'static,
 {
-    pub fn new(args: QemuLaunchArgs) -> Self {
+    pub fn new(args: QemuLaunchArgs) -> VmController<R, W> {
         Self {
             instance: VmInstance::new(args),
             sender: None,
