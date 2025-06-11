@@ -20,7 +20,10 @@ where
         Self { framed }
     }
 
-    pub async fn send<T>(&mut self, command: &T) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    pub async fn send<T>(
+        &mut self,
+        command: &T,
+    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
     where
         T: Serialize + ?Sized,
     {

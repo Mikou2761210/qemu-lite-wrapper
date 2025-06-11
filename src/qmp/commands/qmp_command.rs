@@ -1,8 +1,8 @@
 use crate::qmp::types::QmpId;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, serde::Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QmpCommand {
     pub execute: String,
     #[serde(skip_serializing_if = "Option::is_none")]

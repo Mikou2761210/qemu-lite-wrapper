@@ -1,3 +1,4 @@
+mod command_impls;
 mod qmp_command;
 mod qmp_sender;
 
