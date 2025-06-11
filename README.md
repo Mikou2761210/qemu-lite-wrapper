@@ -14,6 +14,7 @@
 ```rust
 use qemu_lite_wrapper::launcher::{QemuArg, QemuLaunchArgs};
 use qemu_lite_wrapper::vm::VmController;
+use tokio::net::unix::{OwnedReadHalf, OwnedWriteHalf};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -22,7 +23,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with_arg(QemuArg::from_flag("-nographic"));
 
     // Create and launch a VM
-    let mut vm = VmController::new(args);
+    let mut vm = VmController::<OwnedReadHalf, OwnedWriteHalf>::new(args);
     vm.launch().await?;
 
     // Perform operations via QMP if needed
