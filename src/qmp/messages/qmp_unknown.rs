@@ -6,7 +6,7 @@ use serde_json::value::RawValue;
 use super::{QmpKind, QmpPayload};
 use crate::qmp::types::QmpId;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QmpUnknown {
     pub raw: Value,
     pub error: Option<String>,

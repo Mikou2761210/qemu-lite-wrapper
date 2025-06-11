@@ -13,6 +13,7 @@ use tokio_util::{
 
 use crate::qmp::messages::QmpMessage;
 
+#[derive(Debug)]
 pub struct QmpMessageStream<S>
 where
     S: AsyncRead + Unpin + Send + 'static,
@@ -43,19 +44,22 @@ where
         }
 
         let mut this = self.as_mut();
-        match futures::ready!(Pin::new(&mut this.framed).poll_next(cx)) {
-            Some(Ok(line)) => match serde_json::from_str::<Value>(&line) {
-                Ok(val) => Poll::Ready(Some(QmpMessage::from_value(val))),
-                Err(e) => {
-                    error!("QmpMessageStream: parse error: {}", e);
-                    Poll::Pending
+        loop {
+            match futures::ready!(Pin::new(&mut this.framed).poll_next(cx)) {
+                Some(Ok(line)) => match serde_json::from_str::<Value>(&line) {
+                    Ok(val) => break Poll::Ready(Some(QmpMessage::from_value(val))),
+                    Err(e) => {
+                        error!("QmpMessageStream: parse error: {}", e);
+                        // Skip invalid line and continue polling
+                        continue;
+                    }
+                },
+                Some(Err(e)) => {
+                    error!("QmpMessageStream: read error: {}", e);
+                    break Poll::Ready(None);
                 }
-            },
-            Some(Err(e)) => {
-                error!("QmpMessageStream: read error: {}", e);
-                Poll::Ready(None)
+                None => break Poll::Ready(None),
             }
-            None => Poll::Ready(None),
         }
     }
 }

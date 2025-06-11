@@ -31,7 +31,7 @@ impl QmpError {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub struct QmpErrorInner {
     pub class: String,
     pub desc: String,

@@ -14,6 +14,8 @@
 // * An optional catch‑all handler for `Unknown` messages.
 // * Thread‑safe (`Send + Sync`) handler trait objects so the dispatcher
 //   can be shared across tasks if desired.
+// * QMP Greeting messages are not dispatched to handlers; they are logged
+//   by the dispatcher instead.
 //
 // Usage example
 // -------------

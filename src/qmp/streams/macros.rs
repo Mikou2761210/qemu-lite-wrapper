@@ -52,5 +52,10 @@ macro_rules! define_filtered_qmp_stream {
                 self.get_mut().inner.as_mut().poll_next(cx)
             }
         }
+
+        impl<S> ::core::marker::Unpin for $stream_name<S> where
+            S: ::tokio::io::AsyncRead + ::core::marker::Unpin + Send + 'static
+        {
+        }
     };
 }
