@@ -35,7 +35,45 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 ```
+### QMP Connection and Command Sending Example
 
+```rust
+use qemu_lite_wrapper::launcher::QemuLaunchArgs;
+use qemu_lite_wrapper::qmp::commands::{QmpCommand, QmpSender};
+use qemu_lite_wrapper::qmp::dispatcher::QmpDispatcher;
+use qemu_lite_wrapper::qmp::streams::QmpMessageStream;
+use qemu_lite_wrapper::qmp::types::QmpId;
+use qemu_lite_wrapper::vm::VmController;
+use tokio::net::UnixStream;
+use tokio_util::sync::CancellationToken;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = QemuLaunchArgs::new("/usr/bin/qemu-system-x86_64")
+        .with_key_value("-qmp", "unix:/tmp/qmp.sock,server,nowait");
+
+    // Create and launch the VM
+    let mut vm = VmController::new(args);
+    vm.launch().await?;
+
+    // Connect to QMP socket
+    let stream = UnixStream::connect("/tmp/qmp.sock").await?;
+    let (r, w) = stream.into_split();
+    vm.set_sender(Some(QmpSender::new(w)));
+    vm.set_message_stream(Some(QmpMessageStream::new(r, CancellationToken::new())));
+
+    // Register a reply handler
+    let mut dispatcher = QmpDispatcher::new();
+    dispatcher.register_reply_handler(QmpId::Num(1), |rep| {
+        println!("reply: {:?}", rep);
+    });
+
+    // Send a QMP command
+    vm.send_command(&QmpCommand::query_status().with_id(QmpId::Num(1))).await?;
+
+    Ok(())
+}
+```
 ## Build
 
 ```bash
