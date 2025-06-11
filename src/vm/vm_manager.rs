@@ -1,11 +1,16 @@
 use std::collections::HashMap;
+use tokio::io::{AsyncRead, AsyncWrite};
 
 use super::VmController;
 use crate::launcher::QemuLaunchArgs;
 
-#[derive(Debug, Default)]
+type VmCtrl = VmController<
+    Box<dyn AsyncRead + Unpin + Send + 'static>,
+    Box<dyn AsyncWrite + Unpin + Send + 'static>,
+>;
+
 pub struct VmManager {
-    vms: HashMap<String, VmController>,
+    vms: HashMap<String, VmCtrl>,
 }
 
 impl VmManager {
@@ -19,11 +24,11 @@ impl VmManager {
         self.vms.insert(name.into(), VmController::new(args));
     }
 
-    pub fn get_vm(&mut self, name: &str) -> Option<&mut VmController> {
+    pub fn get_vm(&mut self, name: &str) -> Option<&mut VmCtrl> {
         self.vms.get_mut(name)
     }
 
-    pub fn get_all_vms(&mut self) -> impl Iterator<Item = (&String, &mut VmController)> {
+    pub fn get_all_vms(&mut self) -> impl Iterator<Item = (&String, &mut VmCtrl)> {
         self.vms.iter_mut()
     }
 
@@ -31,7 +36,7 @@ impl VmManager {
         self.vms.keys().cloned().collect()
     }
 
-    pub fn remove_vm(&mut self, name: &str) -> Option<VmController> {
+    pub fn remove_vm(&mut self, name: &str) -> Option<VmCtrl> {
         self.vms.remove(name)
     }
 

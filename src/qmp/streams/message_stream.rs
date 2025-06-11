@@ -30,6 +30,14 @@ where
         let framed = FramedRead::new(stream, LinesCodec::new());
         Self { framed, cancel }
     }
+
+        pub fn cancel(&self) {
+        self.cancel.cancel();
+    }
+
+    pub fn cancel_token(&self) -> CancellationToken {
+        self.cancel.clone()
+    }
 }
 
 impl<S> Stream for QmpMessageStream<S>

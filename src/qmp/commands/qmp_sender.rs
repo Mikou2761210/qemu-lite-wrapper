@@ -3,6 +3,8 @@ use serde::Serialize;
 use tokio::io::AsyncWrite;
 use tokio_util::codec::{FramedWrite, LinesCodec};
 
+use super::QmpSendError;
+
 #[derive(Debug)]
 pub struct QmpSender<W>
 where
@@ -20,10 +22,7 @@ where
         Self { framed }
     }
 
-    pub async fn send<T>(
-        &mut self,
-        command: &T,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>>
+    pub async fn send<T>(&mut self, command: &T) -> Result<(), QmpSendError>
     where
         T: Serialize + ?Sized,
     {

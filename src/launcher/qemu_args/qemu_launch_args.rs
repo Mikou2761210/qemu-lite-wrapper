@@ -24,7 +24,7 @@ impl QemuLaunchArgs {
         self.args.push(QemuArg::from_flag(flag));
         self
     }
-    
+
     pub fn with_key_value(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
         self.args.push(QemuArg::from_key_value(key, value));
         self
@@ -149,7 +149,7 @@ impl QemuLaunchArgs {
     }
 
     pub fn remove_arg(&mut self, key: &str) {
-        self.args.retain(|a| a.key_equals(key));
+        self.args.retain(|a| !a.key_equals(key));
     }
 
     pub fn replace_arg(&mut self, new_arg: QemuArg) {

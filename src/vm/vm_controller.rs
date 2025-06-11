@@ -1,39 +1,52 @@
-use std::path::Path;
-use tokio::net::UnixStream;
-use tokio_util::sync::CancellationToken;
+use tokio::io::{AsyncRead, AsyncWrite};
 
 use super::VmInstance;
 
 use crate::launcher::QemuLaunchArgs;
-use crate::qmp::commands::{QmpCommand, QmpSender};
+use crate::qmp::commands::{QmpCommand, QmpSendError, QmpSender};
 use crate::qmp::streams::QmpMessageStream;
 
-#[derive(Debug)]
-pub struct VmController {
+pub struct VmController<R, W>
+where
+    R: AsyncRead + Unpin + Send + 'static,
+    W: AsyncWrite + Unpin + Send + 'static,
+{
     instance: VmInstance,
-    sender: Option<QmpSender<tokio::net::unix::OwnedWriteHalf>>,
-    stream: Option<QmpMessageStream<tokio::net::unix::OwnedReadHalf>>,
-    cancel: Option<CancellationToken>,
+    sender: Option<QmpSender<W>>,
+    stream: Option<QmpMessageStream<R>>,
 }
 
-impl VmController {
+impl<R, W> VmController<R, W>
+where
+    R: AsyncRead + Unpin + Send + 'static,
+    W: AsyncWrite + Unpin + Send + 'static,
+{
     pub fn new(args: QemuLaunchArgs) -> Self {
         Self {
             instance: VmInstance::new(args),
             sender: None,
             stream: None,
-            cancel: None,
         }
     }
 
-    pub async fn connect_qmp(&mut self, path: impl AsRef<Path>) -> std::io::Result<()> {
-        let stream = UnixStream::connect(path).await?;
-        let (read_half, write_half) = stream.into_split();
-        let cancel = CancellationToken::new();
-        self.sender = Some(QmpSender::new(write_half));
-        self.stream = Some(QmpMessageStream::new(read_half, cancel.clone()));
-        self.cancel = Some(cancel);
-        Ok(())
+    pub fn set_sender(&mut self, sender: Option<QmpSender<W>>) {
+        self.sender = sender;
+    }
+    pub fn get_sender(&self) -> &Option<QmpSender<W>> {
+        &self.sender
+    }
+    pub fn get_mut_sender(&mut self) -> &mut Option<QmpSender<W>> {
+        &mut self.sender
+    }
+
+    pub fn set_message_stream(&mut self, stream: Option<QmpMessageStream<R>>) {
+        self.stream = stream;
+    }
+    pub fn get_message_stream(&self) -> &Option<QmpMessageStream<R>> {
+        &self.stream
+    }
+    pub fn get_mut_message_stream(&mut self) -> &mut Option<QmpMessageStream<R>> {
+        &mut self.stream
     }
 
     pub async fn launch(&mut self) -> std::io::Result<()> {
@@ -41,47 +54,40 @@ impl VmController {
     }
 
     pub async fn terminate(&mut self) -> std::io::Result<()> {
-        if let Some(token) = &self.cancel {
-            token.cancel();
+        if let Some(stream) = &self.stream {
+            stream.cancel();
         }
         self.instance.terminate().await
     }
 
-    pub fn message_stream(
-        &mut self,
-    ) -> Option<&mut QmpMessageStream<tokio::net::unix::OwnedReadHalf>> {
+    pub fn message_stream(&mut self) -> Option<&mut QmpMessageStream<R>> {
         self.stream.as_mut()
     }
 
-    pub async fn send_command(
-        &mut self,
-        cmd: &QmpCommand,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn send_command(&mut self, cmd: &QmpCommand) -> Result<(), QmpSendError> {
         match &mut self.sender {
             Some(sender) => sender.send(cmd).await,
-            None => Err("QMP not connected".into()),
+            None => Err(QmpSendError::NotConnected),
         }
     }
 
-    pub async fn system_powerdown(
-        &mut self,
-    ) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn system_powerdown(&mut self) -> Result<(), QmpSendError> {
         self.send_command(&QmpCommand::system_powerdown()).await
     }
 
-    pub async fn quit(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn quit(&mut self) -> Result<(), QmpSendError> {
         self.send_command(&QmpCommand::quit()).await
     }
 
-    pub async fn reset(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn reset(&mut self) -> Result<(), QmpSendError> {
         self.send_command(&QmpCommand::system_reset()).await
     }
 
-    pub async fn pause(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn pause(&mut self) -> Result<(), QmpSendError> {
         self.send_command(&QmpCommand::stop()).await
     }
 
-    pub async fn resume(&mut self) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub async fn resume(&mut self) -> Result<(), QmpSendError> {
         self.send_command(&QmpCommand::cont()).await
     }
 }
