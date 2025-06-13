@@ -8,6 +8,7 @@
 * **Command Sender**: Use `QmpSender` to send QMP commands asynchronously.
 * **QEMU Process Management**: `QemuLaunchArgs` and `QemuProcess` provide flexible command-line construction and process control.
 * **Virtual Machine Management**: `VmController` and `VmManager` allow creating, terminating, and managing QMP connections for multiple VMs.
+* **Example VM Module**: The structs under `src/vm` are lightweight samples created for demonstration.
 
 ## Minimal Example
 
