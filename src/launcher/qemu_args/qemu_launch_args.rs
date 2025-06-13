@@ -1,8 +1,13 @@
+use serde::{Deserialize, Serialize};
+
 use super::QemuArg;
-#[derive(Debug, Clone, Hash, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Default,Serialize,Deserialize)]
 pub struct QemuLaunchArgs {
+    #[serde(rename = "qemuBinary")]
     binary: String,
+    #[serde(rename = "launchArguments")]
     args: Vec<QemuArg>,
+    #[serde(rename = "positionalArgs")]
     positionals: Vec<String>,
 }
 

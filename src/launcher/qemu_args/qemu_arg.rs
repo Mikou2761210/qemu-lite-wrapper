@@ -1,4 +1,7 @@
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type", content = "data")]
 pub enum QemuArg {
     Flag(String),
     KeyValue(String, String),
@@ -41,7 +44,7 @@ impl QemuArg {
     pub fn key_equals(&self, key: &str) -> bool {
         self.key() == key
     }
-    
+
     pub fn with_key(&self, new_key: impl Into<String>) -> Self {
         let new_key = new_key.into();
         match self {
