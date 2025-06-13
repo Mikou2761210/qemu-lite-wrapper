@@ -1,6 +1,5 @@
 use super::QmpCommand;
 
-//Temp
 #[macro_export]
 macro_rules! impl_qmp_command_constructors {
     ( $( $fn_name:ident => $cmd_str:expr ),* $(,)? ) => {

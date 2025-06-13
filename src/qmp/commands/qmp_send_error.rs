@@ -8,7 +8,6 @@ pub enum QmpSendError {
     NotConnected,
 }
 
-// Display の追加
 impl std::fmt::Display for QmpSendError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -19,7 +18,6 @@ impl std::fmt::Display for QmpSendError {
     }
 }
 
-// std::error::Error
 impl std::error::Error for QmpSendError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
         match self {
@@ -29,7 +27,6 @@ impl std::error::Error for QmpSendError {
         }
     }
 }
-
 
 impl From<serde_json::Error> for QmpSendError {
     fn from(e: serde_json::Error) -> Self {
